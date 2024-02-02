@@ -6,6 +6,7 @@ class Blog(models.Model):
 
 
 class Post(models.Model):
+    title = models.CharField(max_length=100)
     text = models.TextField(max_length=140)
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
     image = models.ImageField(
@@ -56,21 +57,9 @@ class Follow(models.Model):
         ]
 
 
-class ReadedPost(models.Model):
-    user = models.ForeignKey(
-        User, verbose_name='Пользователь',
-        on_delete=models.CASCADE
-    )
-    post = models.ForeignKey(
-        Post,
-        on_delete=models.CASCADE,
-    )
-
-    def __str__(self):
-        return f'Пользователь - {self.user} | ' \
-               f'Прочитал пост пользователя - {self.post.user} | ' \
-               f'Заголовок - {self.post.title} | ' \
-               f'Текст - {self.post.text[:15]}...'
+class UserPostRead(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = 'Прочитанный пост'
