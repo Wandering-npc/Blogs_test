@@ -1,5 +1,5 @@
 import base64
-
+from djoser.serializers import UserSerializer
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
@@ -17,13 +17,41 @@ class Base64ImageField(serializers.ImageField):
             data = ContentFile(base64.b64decode(imgstr), name="temp." + ext)
 
         return super().to_internal_value(data)
-    
+
+
+class UserGetSerializer(UserSerializer):
+    """Гет сериализатор для работы с пользователями ."""
+
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "email",
+            "username",
+            "first_name",
+            "last_name",
+            "is_subscribed",
+        )
+
+    def get_is_subscribed(self, following):
+        """Проверка на наличие подписки."""
+        request = self.context.get("request")
+        return (
+            request
+            and request.user.is_authenticated
+            and request.user.follower.filter(following=following).exists()
+        )
+
 
 class PostSerializer(serializers.ModelSerializer):
-    author = SlugRelatedField(slug_field='username', read_only=True)
+    blog = serializers.PrimaryKeyRelatedField(queryset=Blog.objects.all(), write_only=True)
+    # blog = SlugRelatedField(slug_field='username', read_only=True)
     is_readed = serializers.SerializerMethodField(read_only=True)
+    image = Base64ImageField()
 
-    def get_is_favorited(self, obj):
+    def get_is_readed(self, obj):
         user = self.context.get("request").user
         if user.is_authenticated:
             return user.readed.filter(post=obj).exists()
@@ -38,7 +66,7 @@ class PostSerializer(serializers.ModelSerializer):
             "updated",
             "blog",
             "is_readed",
-            "author",
+            "blog",
         )
         model = Post
 
@@ -62,15 +90,8 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
 
 
-class FollowSerializer(serializers.ModelSerializer):
-    """Сериализация подписок"""
-    user = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='username',
-        default=serializers.CurrentUserDefault())
-    following = serializers.SlugRelatedField(
-        queryset=User.objects.all(),
-        slug_field='username')
+class FollowSerializer(UserGetSerializer):
+    """Сериализатор для гет подписок."""
 
     class Meta:
         model = Follow
@@ -89,3 +110,9 @@ class FollowSerializer(serializers.ModelSerializer):
                 'Нельзя подписаться на себя :('
             )
         return value
+    
+    def to_representation(self, instance):
+        request = self.context.get("request")
+        return UserGetSerializer(
+            instance.following, context={"request": request}
+        ).data

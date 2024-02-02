@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+from datetime import timedelta
 import os
 from pathlib import Path
 
@@ -38,8 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "rest_framework.authtoken",
     'rest_framework',
-    'rest_framework_simplejwt'
+    'rest_framework_simplejwt',
+    "django_filters",
     'api',
     'blogs',
     'djoser',
@@ -165,10 +168,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
-    # 'DEFAULT_AUTHENTICATION_CLASSES': [
-    #     'rest_framework_simplejwt.authentication.JWTAuthentication',
-    # ],
-
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    # "DEFAULT_PAGINATION_CLASS": "api.pagination.PageLimitPagination",
+    # "PAGE_SIZE": 10,
 }
 
 # Default primary key field type

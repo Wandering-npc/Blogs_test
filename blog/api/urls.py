@@ -12,10 +12,11 @@ router.register(
 )
 router.register(r'blogs', BlogViewSet, basename='blogs')
 router.register(r'follow', FollowViewSet, basename='follow')
+router.register(r"users", FollowViewSet, basename="users")
 
 
 urlpatterns = [
     path('v1/', include(router.urls)),
     path('v1/', include('djoser.urls')),
-    path('v1/', include('djoser.urls.jwt')),
+    path("auth/", include("djoser.urls.authtoken")),
 ]
