@@ -1,7 +1,13 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.views import CommentViewSet, PostViewSet, BlogViewSet, FollowViewSet
+from api.views import (
+    CommentViewSet,
+    PostViewSet,
+    BlogViewSet,
+    FollowViewSet,
+    BlogPostsViewSet
+)
 
 app_name = 'api'
 
@@ -13,6 +19,9 @@ router.register(
 router.register(r'blogs', BlogViewSet, basename='blogs')
 router.register(r'follow', FollowViewSet, basename='follow')
 router.register(r"users", FollowViewSet, basename="users")
+router.register(
+    r'users/(?P<user_id>\d+)/blog', BlogPostsViewSet, basename='posts_in_blog'
+)
 
 
 urlpatterns = [

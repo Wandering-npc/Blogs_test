@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from rest_framework import permissions
@@ -9,7 +10,7 @@ from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
 
-from blogs.models import Follow, Post, Blog, User
+from blogs.models import Follow, Post, Blog, User, UserPostRead
 from .serializers import PostSerializer, BlogSerializer, CommentSerializer, UserGetSerializer
 from .serializers import FollowSerializer
 from .permissions import IsAuthorOrReadOnly
@@ -64,7 +65,8 @@ class PostViewSet(viewsets.ModelViewSet):
     permission_classes = [
         IsAuthorOrReadOnly,
         permissions.IsAuthenticated]
-    pagination_class = LimitOffsetPagination
+    # paginate_by = settings.PAGINATION_PAGE_SIZE
+    # pagination_class = LimitOffsetPagination
 
 
     def list(self, request, *args, **kwargs):
@@ -78,9 +80,30 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @action(
+        detail=True,
+        methods=['post'],
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def mark_as_read(self, request, pk=None):
+        user = request.user
+        post = self.get_object()
+        UserPostRead.objects.get_or_create(user=user, post=post)
+        return Response("Прочитан", status=status.HTTP_200_OK)
+    
     def perform_create(self, serializer):
         serializer.save(blog=self.request.user.id)
 
+class BlogPostsViewSet(PostViewSet):
+
+    def list(self, request, *args, **kwargs):
+        blog_id = kwargs.get('blog_id')
+        if blog_id is None:
+            return Response({'error': 'Blog ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        queryset = self.queryset.filter(blog_id=blog_id).order_by('-pub_date')
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 class BlogViewSet(viewsets.ReadOnlyModelViewSet):
     """Вью для блогов."""

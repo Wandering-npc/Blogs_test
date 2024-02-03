@@ -59,6 +59,7 @@ class PostSerializer(serializers.ModelSerializer):
     
     class Meta:
         fields = (
+            "id",
             "title",
             "text",
             "pub_date",
