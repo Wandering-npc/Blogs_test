@@ -6,4 +6,4 @@ from .models import User, Blog
 @receiver(post_save, sender=User)
 def create_user_blog(sender, instance, created, **kwargs):
     if created:
-        Blog.objects.create(user=instance)
+        Blog.objects.create(user=instance, name=instance.username)

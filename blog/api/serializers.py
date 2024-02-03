@@ -45,18 +45,28 @@ class UserGetSerializer(UserSerializer):
         )
 
 
+class BlogSerializer(serializers.ModelSerializer):
+    """Сериализация blog."""
+
+    class Meta:
+        fields = '__all__'
+        model = Blog
+
+
 class PostSerializer(serializers.ModelSerializer):
-    blog = serializers.PrimaryKeyRelatedField(queryset=Blog.objects.all(), write_only=True)
+    blog = BlogSerializer(read_only=True)
     # blog = SlugRelatedField(slug_field='username', read_only=True)
     is_readed = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField()
 
     def get_is_readed(self, obj):
+        print(1)
         user = self.context.get("request").user
         if user.is_authenticated:
             return user.readed.filter(post=obj).exists()
         return False
     
+
     class Meta:
         fields = (
             "id",
@@ -67,17 +77,8 @@ class PostSerializer(serializers.ModelSerializer):
             "updated",
             "blog",
             "is_readed",
-            "blog",
         )
         model = Post
-
-
-class BlogSerializer(serializers.ModelSerializer):
-    """Сериализация blog."""
-
-    class Meta:
-        fields = '__all__'
-        model = Blog
 
 
 class CommentSerializer(serializers.ModelSerializer):

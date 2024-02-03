@@ -10,6 +10,7 @@ from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
 
+from api.pagination import PostPagination
 from blogs.models import Follow, Post, Blog, User, UserPostRead
 from .serializers import PostSerializer, BlogSerializer, CommentSerializer, UserGetSerializer
 from .serializers import FollowSerializer
@@ -59,26 +60,40 @@ class FollowViewSet(UserViewSet):
 class PostViewSet(viewsets.ModelViewSet):
     """Вью для постов."""
     filter_backends = [DjangoFilterBackend]
-    # filterset_class = RecipeFilter
+    # filterset_class = PostFilter
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [
         IsAuthorOrReadOnly,
         permissions.IsAuthenticated]
+    pagination_class = PostPagination
     # paginate_by = settings.PAGINATION_PAGE_SIZE
     # pagination_class = LimitOffsetPagination
+    
+    def perform_create(self, serializer):
+        blog = Blog.objects.get(user=self.request.user)
+        print(blog)
+        serializer.save(blog=blog)
 
-
-    def list(self, request, *args, **kwargs):
-        user = request.user
+    def get_queryset(self):
+        user = self.request.user
         subscribed_blogs = Follow.objects.filter(user=user).values_list(
             'following__blog',
             flat=True,
         )
         queryset = self.queryset.filter(blog_id__in=subscribed_blogs)
-        queryset = queryset.order_by('-pub_date')[:500]
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        return queryset.order_by('-pub_date')[:500]
+
+    # def list(self, request, *args, **kwargs):
+    #     user = request.user
+    #     subscribed_blogs = Follow.objects.filter(user=user).values_list(
+    #         'following__blog',
+    #         flat=True,
+    #     )
+    #     queryset = self.queryset.filter(blog_id__in=subscribed_blogs)
+    #     queryset = queryset.order_by('-pub_date')[:500]
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
 
     @action(
         detail=True,
@@ -91,8 +106,7 @@ class PostViewSet(viewsets.ModelViewSet):
         UserPostRead.objects.get_or_create(user=user, post=post)
         return Response("Прочитан", status=status.HTTP_200_OK)
     
-    def perform_create(self, serializer):
-        serializer.save(blog=self.request.user.id)
+    
 
 class BlogPostsViewSet(PostViewSet):
 
