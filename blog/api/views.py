@@ -57,9 +57,10 @@ class FollowViewSet(UserViewSet):
         )
         return self.get_paginated_response(serializer.data)
 
+
 class PostViewSet(viewsets.ModelViewSet):
     """Вью для постов."""
-    filter_backends = [DjangoFilterBackend]
+    # filter_backends = [DjangoFilterBackend]
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [
@@ -77,8 +78,14 @@ class PostViewSet(viewsets.ModelViewSet):
             'following__blog',
             flat=True,
         )
-        queryset = self.queryset.filter(blog_id__in=subscribed_blogs)
-        return queryset.order_by('-pub_date')[:500]
+        queryset = Post.objects.filter(blog_id__in=subscribed_blogs).order_by('-pub_date')
+        return queryset[:500]
+
+    def get_object(self):
+        queryset = Post.objects.all()
+        obj = queryset.get(pk=self.kwargs['pk'])
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     @action(
         detail=True,
@@ -90,6 +97,24 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         UserPostRead.objects.get_or_create(user=user, post=post)
         return Response("Прочитан", status=status.HTTP_200_OK)
+
+    @mark_as_read.mapping.delete
+    def unmark_as_read(self, request, pk=None):
+        post = self.get_object()
+        get_object_or_404(UserPostRead, user=request.user, post=post).delete()
+        return Response("Не прочитан", status=status.HTTP_204_NO_CONTENT)
+    
+    @action(
+        detail=False,
+        methods=['get'],
+    )
+    def by_blog(self, request, id=None):
+        if id:
+            queryset = Post.objects.filter(blog_id=id).order_by('-pub_date')
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+        else:
+            return Response({"error": "ID не передан"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BlogViewSet(viewsets.ReadOnlyModelViewSet):

@@ -1,6 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+
 from api.views import (
     CommentViewSet,
     PostViewSet,
@@ -22,5 +23,6 @@ router.register(r"users", FollowViewSet, basename="users")
 urlpatterns = [
     path('v1/', include(router.urls)),
     path('v1/', include('djoser.urls')),
+    # path('v1/api/blogs/<int:id>/posts/', PostViewSet.as_view({'get': 'by_blog'}), name='posts-by-blog'),
     path("auth/", include("djoser.urls.authtoken")),
 ]
