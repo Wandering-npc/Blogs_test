@@ -15,11 +15,6 @@ class Post(models.Model):
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True, db_index=True)
     image = models.ImageField(
         upload_to='posts/', null=True, blank=True)
-    # updated = models.DateTimeField(
-    #     verbose_name='Обновлен',
-    #     auto_now=True,
-    #     db_index=True
-    # )
     blog = models.ForeignKey(
         Blog,
         on_delete=models.CASCADE,
@@ -28,6 +23,9 @@ class Post(models.Model):
 
     def __str__(self):
         return self.text
+    
+    class Meta:
+        ordering = ['-pub_date']
 
 
 class Comment(models.Model):

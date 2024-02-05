@@ -12,8 +12,14 @@ from rest_framework.decorators import action
 
 from api.pagination import PostPagination
 from blogs.models import Follow, Post, Blog, User, UserPostRead
-from .serializers import PostSerializer, BlogSerializer, CommentSerializer, UserGetSerializer
-from .serializers import FollowSerializer
+from .serializers import (
+    BlogPostsSerializer,
+    FollowSerializer,
+    PostSerializer,
+    BlogSerializer,
+    CommentSerializer,
+    UserGetSerializer
+)
 from .permissions import IsAuthorOrReadOnly
 
 class FollowViewSet(UserViewSet):
@@ -78,7 +84,8 @@ class PostViewSet(viewsets.ModelViewSet):
             'following__blog',
             flat=True,
         )
-        queryset = Post.objects.filter(blog_id__in=subscribed_blogs).order_by('-pub_date')
+        queryset = Post.objects.filter(
+            blog_id__in=subscribed_blogs).order_by('-pub_date')
         return queryset[:500]
 
     def get_object(self):
@@ -119,7 +126,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
 class BlogViewSet(viewsets.ReadOnlyModelViewSet):
     """Вью для блогов."""
-    serializer_class = BlogSerializer
+    serializer_class = BlogPostsSerializer
     queryset = Blog.objects.all()
 
 
