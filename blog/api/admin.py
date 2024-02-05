@@ -1,5 +1,5 @@
 from django.contrib import admin
-from blogs.models import User, Blog, Post, Follow, UserPostRead
+from blogs.models import User, Blog, Post, Follow, UserPostRead, Comment
 
 # @admin.register(User)
 # class UserAdmin(admin.ModelAdmin):
@@ -21,4 +21,8 @@ class FollowAdmin(admin.ModelAdmin):
 
 @admin.register(UserPostRead)
 class UserPostReadAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(Comment)
+class CommentReadAdmin(admin.ModelAdmin):
     pass

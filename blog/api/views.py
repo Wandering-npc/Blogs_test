@@ -109,25 +109,16 @@ class PostViewSet(viewsets.ModelViewSet):
     def unmark_as_read(self, request, pk=None):
         post = self.get_object()
         get_object_or_404(UserPostRead, user=request.user, post=post).delete()
-        return Response("Не прочитан", status=status.HTTP_204_NO_CONTENT)
-    
-    @action(
-        detail=False,
-        methods=['get'],
-    )
-    def by_blog(self, request, id=None):
-        if id:
-            queryset = Post.objects.filter(blog_id=id).order_by('-pub_date')
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
-        else:
-            return Response({"error": "ID не передан"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class BlogViewSet(viewsets.ReadOnlyModelViewSet):
     """Вью для блогов."""
     serializer_class = BlogPostsSerializer
     queryset = Blog.objects.all()
+    permission_classes = [
+        IsAuthorOrReadOnly,
+        ]
 
 
 class CommentViewSet(viewsets.ModelViewSet):
