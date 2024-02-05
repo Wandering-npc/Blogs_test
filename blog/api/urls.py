@@ -6,7 +6,6 @@ from api.views import (
     PostViewSet,
     BlogViewSet,
     FollowViewSet,
-    BlogPostsViewSet
 )
 
 app_name = 'api'
@@ -17,11 +16,7 @@ router.register(
     r'posts/(?P<post_id>\d+)/comments', CommentViewSet, basename='comments'
 )
 router.register(r'blogs', BlogViewSet, basename='blogs')
-router.register(r'follow', FollowViewSet, basename='follow')
 router.register(r"users", FollowViewSet, basename="users")
-router.register(
-    r'users/(?P<user_id>\d+)/blog', BlogPostsViewSet, basename='posts_in_blog'
-)
 
 
 urlpatterns = [

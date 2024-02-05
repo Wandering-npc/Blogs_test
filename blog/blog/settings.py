@@ -29,7 +29,8 @@ SECRET_KEY = 'django-insecure-_7jp_xade!4p7w%mida21&10_ar0-g+301igsw4@x&xn2r-b=%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8080',]
 
 
 # Application definition
@@ -109,17 +110,17 @@ if DEBUG:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
-            "NAME": os.getenv("DB_NAME"),
-            "USER": os.getenv("POSTGRES_USER"),
-            "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-            "HOST": os.getenv("DB_HOST"),
-            "PORT": os.getenv("DB_PORT"),
-        }
-    }
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
+#         "NAME": os.getenv("DB_NAME"),
+#         "USER": os.getenv("POSTGRES_USER"),
+#         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+#         "HOST": os.getenv("DB_HOST"),
+#         "PORT": os.getenv("DB_PORT"),
+#     }
+# }
 
 
 # Password validation
@@ -159,13 +160,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-
-# STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -178,12 +178,13 @@ REST_FRAMEWORK = {
     # "PAGE_SIZE": 10,
 }
 
-# PAGINATION_PAGE_SIZE = 10
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CELERY_BROKER_URL = 'redis://host.docker.internal:6379/0'
-CELERY_RESULT_BACKEND = 'redis://host.docker.internal:6379/0'
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+
+

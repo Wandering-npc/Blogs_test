@@ -1,4 +1,4 @@
-version: "3.9"
+version: '3.3'
 
 services:
   redis:
@@ -6,36 +6,55 @@ services:
     restart: always
     ports:
       - "6379:6379"
-  
-  webapp:
-    restart: always
-    build: ./
+
+  db:
+    image: postgres
     volumes:
-      - ./:/app
-    ports: 
-      - "8000:8000"
-    command: >
-      sh -c "python manage.py makemigrations && 
-      python manage.py migrate 
-      && python manage.py runserver 0.0.0.0:8000"
-  
+      - postgres_data2:/var/lib/postgresql/data/
+    env_file:
+      - .env
+
+  web:
+    build: blog
+    volumes:
+      - static_volume:/app/static/
+      - media_volume:/app/media/
+    depends_on:
+      - db
+    env_file:
+      - .env
+    command:  python manage.py migrate && python manage.py generate_posts 
   worker:
     restart: always
-    build: .
-    volumes: 
-      - ./:/app
+    build: blog
     depends_on:
       - redis
-      - webapp
-    command: 'celery -A proj worker -l info'
+      - web
+      - nginx
+    command: 'celery -A blog worker -l info'
 
   beat:
     restart: always
-    build: .
-    volumes:
-      - ./:/app
+    build: blog
     depends_on:
       - redis
-      - webapp
-      - worker
-    command: 'celery -A proj beat -l info'
+      - web
+    command: 'celery -A blog beat -l info'
+
+  nginx:
+    build: infra
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./infra/nginx.conf:/etc/nginx/conf.d/nginx.conf
+      - static_volume:/var/html/static/
+      - media_volume:/var/html/media/
+      # - static_volume:/static/
+      # - static_media:/app/media
+    depends_on:
+      - web
+
+volumes:
+  static_volume:
+  media_volume:
+  postgres_data2:

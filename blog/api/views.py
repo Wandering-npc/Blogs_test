@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
-from rest_framework import permissions
+from rest_framework import permissions, generics
 from rest_framework import viewsets, filters, mixins
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
@@ -21,7 +21,7 @@ class FollowViewSet(UserViewSet):
 
     queryset = User.objects.all()
     serializer_class = UserGetSerializer
-    # permission_classes = [AuthorOrReadOnly]
+    permission_classes = [IsAuthorOrReadOnly]
 
     @action(
         detail=True,
@@ -60,19 +60,15 @@ class FollowViewSet(UserViewSet):
 class PostViewSet(viewsets.ModelViewSet):
     """Вью для постов."""
     filter_backends = [DjangoFilterBackend]
-    # filterset_class = PostFilter
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [
         IsAuthorOrReadOnly,
         permissions.IsAuthenticated]
     pagination_class = PostPagination
-    # paginate_by = settings.PAGINATION_PAGE_SIZE
-    # pagination_class = LimitOffsetPagination
     
     def perform_create(self, serializer):
         blog = Blog.objects.get(user=self.request.user)
-        print(blog)
         serializer.save(blog=blog)
 
     def get_queryset(self):
@@ -84,17 +80,6 @@ class PostViewSet(viewsets.ModelViewSet):
         queryset = self.queryset.filter(blog_id__in=subscribed_blogs)
         return queryset.order_by('-pub_date')[:500]
 
-    # def list(self, request, *args, **kwargs):
-    #     user = request.user
-    #     subscribed_blogs = Follow.objects.filter(user=user).values_list(
-    #         'following__blog',
-    #         flat=True,
-    #     )
-    #     queryset = self.queryset.filter(blog_id__in=subscribed_blogs)
-    #     queryset = queryset.order_by('-pub_date')[:500]
-    #     serializer = self.get_serializer(queryset, many=True)
-    #     return Response(serializer.data)
-
     @action(
         detail=True,
         methods=['post'],
@@ -105,24 +90,12 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         UserPostRead.objects.get_or_create(user=user, post=post)
         return Response("Прочитан", status=status.HTTP_200_OK)
-    
-    
 
-class BlogPostsViewSet(PostViewSet):
-
-    def list(self, request, *args, **kwargs):
-        blog_id = kwargs.get('blog_id')
-        if blog_id is None:
-            return Response({'error': 'Blog ID is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        queryset = self.queryset.filter(blog_id=blog_id).order_by('-pub_date')
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
 
 class BlogViewSet(viewsets.ReadOnlyModelViewSet):
     """Вью для блогов."""
-    queryset = Blog.objects.all()
     serializer_class = BlogSerializer
+    queryset = Blog.objects.all()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -139,27 +112,3 @@ class CommentViewSet(viewsets.ModelViewSet):
         post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
         blog = get_object_or_404(Blog, pk=self.request.user.pk)
         serializer.save(blog=blog, post=post)
-
-
-# class FollowViewSet(
-#     mixins.CreateModelMixin,
-#     mixins.ListModelMixin,
-#     viewsets.GenericViewSet,
-# ):
-#     """Вьюсет для подписки."""
-#     serializer_class = FollowSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-#     filter_backends = (filters.SearchFilter,)
-#     search_fields = ('following__username', 'user__username')
-
-#     def get_queryset(self):
-#         user = get_object_or_404(User, username=self.request.user.username)
-#         return user.follower.all()
-
-#     def perform_create(self, serializer):
-#         serializer.save(user=self.request.user)
-    
-#     @action(detail=True, methods=['delete'])
-#     def unfollow(self, request, pk=None):
-#         get_object_or_404(Follow, user=request.user, author_id=id).delete()
-# #         return Response(status=status.HTTP_204_NO_CONTENT)

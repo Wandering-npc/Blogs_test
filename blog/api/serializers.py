@@ -74,7 +74,6 @@ class PostSerializer(serializers.ModelSerializer):
             "text",
             "pub_date",
             "image",
-            "updated",
             "blog",
             "is_readed",
         )

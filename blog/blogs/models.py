@@ -12,14 +12,14 @@ class Blog(models.Model):
 class Post(models.Model):
     title = models.CharField(max_length=100)
     text = models.TextField(max_length=140)
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True, db_index=True)
     image = models.ImageField(
         upload_to='posts/', null=True, blank=True)
-    updated = models.DateTimeField(
-        verbose_name='Обновлен',
-        auto_now=True,
-        db_index=True
-    )
+    # updated = models.DateTimeField(
+    #     verbose_name='Обновлен',
+    #     auto_now=True,
+    #     db_index=True
+    # )
     blog = models.ForeignKey(
         Blog,
         on_delete=models.CASCADE,
