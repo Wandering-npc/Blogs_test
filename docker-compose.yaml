@@ -23,7 +23,7 @@ services:
       - db
     env_file:
       - .env
-    command:  python manage.py migrate && python manage.py generate_posts 
+    # command:  python manage.py generate_posts
   worker:
     restart: always
     build: blog
