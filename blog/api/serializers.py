@@ -107,7 +107,7 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
 
 
-class FollowSerializer(UserGetSerializer):
+class FollowSerializer(serializers.ModelSerializer):
     """Сериализатор для подписок."""
 
     class Meta:
